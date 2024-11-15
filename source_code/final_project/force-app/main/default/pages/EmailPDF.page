@@ -1,0 +1,63 @@
+<apex:page standardController="Quote" renderAs="PDF">
+
+    <apex:pageBlock title="Subjects enrolled">
+        <apex:pageBlockTable cellpadding="30" align="center" value="{!Quote.QuoteLineItems}" var="currentQtLI">
+            <apex:column value="{!currentQtLI.Product2.Name}"/>
+            <apex:column value="{!currentQtLI.UnitPrice}"/>
+            <apex:column value="{!currentQtLI.Subtotal}"/>
+        </apex:pageBlockTable>
+    </apex:pageBlock>
+    
+    <apex:pageBlock title="Subtotal and discounts">
+        
+            <apex:outputLabel style="font-weight: 900;" value="Subtotal: " for="subtotal"/>
+            <apex:outputPanel >
+            	<apex:outputField value="{!Quote.Subtotal}" id="subtotal"/>
+        	</apex:outputPanel>
+
+        <div style="padding-top: 10px;">
+            <apex:outputLabel style="font-weight: 900;" value="Scholarships: " for="scholarhips"/>
+            <apex:outputPanel >
+                <apex:outputField value="{!Quote.Scholarship_options__c}" id="scholarhips"/>
+            </apex:outputPanel>
+        </div>
+
+		<div style="padding-top: 10px;">
+            <apex:outputLabel style="font-weight: 900;" value="Discount: " for="discount"/>
+            <apex:outputPanel >
+                <apex:outputField value="{!Quote.Discount}" id="discount"/>
+            </apex:outputPanel>
+        </div>
+
+        <div style="padding-top: 10px;">
+            <apex:outputLabel style="font-weight: 900;" value="Total price: " for="totalPrice"/>
+            <apex:outputPanel >
+                <apex:outputField value="{!Quote.TotalPrice}" id="totalPrice"/>
+            </apex:outputPanel>
+        </div>
+        	
+    </apex:pageBlock>
+    <div style="{!IF(Quote.Payment_Method__c == 'Monthly', 'padding-top:50px;', 'display:none;')}">
+        <div style="{!IF(Quote.Contact.Period__c == 'Quarterly', '', 'display:none;')}">
+            <table cellpadding="5">
+                <tr>
+                    <td>Date</td>
+                    <td>Amount to pay</td>
+                </tr>
+                <tr>
+                    <td>July 10</td>
+                    <td><apex:outputField value="{!Quote.Partial_Payment__c}"></apex:outputField></td>
+                </tr>
+            
+            </table>
+
+        </div>
+
+    </div>
+
+       
+
+	
+
+
+</apex:page>

@@ -1,0 +1,66 @@
+public class EmailPDFController {
+    
+    public Quote qtsToGeneratePDF {get; set;}
+    
+    public List<QuoteLineItem> qtLineItemsToDisplay {get; set;}
+    
+    public QuoteLineItem qtLineItemWithTotals {get; set;} 
+    
+    public EmailPDFController() {
+        
+        String quoteId = ApexPages.currentPage().getParameters().get('QuoteId');
+        this.qtsToGeneratePDF = [SELECT Subtotal, Discount, TotalPrice FROM Quote WHERE Id =: quoteId];
+        this.qtLineItemsToDisplay = [SELECT QuoteId, Product2.Name, UnitPrice, Subtotal FROM QuoteLineItem WHERE QuoteId =: quoteId];
+        
+       	 
+    }
+    
+    public static void generatePDFAndSendEmail(List<Quote> quotes) {
+        
+        List<Quote> quotesWithContactsNames = [SELECT Contact.Name, Email, Id FROM Quote WHERE Id IN : quotes];
+        List<String> idNameEmails = new List<String>();
+        for (Quote currentQt : quotesWithContactsNames) {
+            String idNameEmail = currentQt.Id + ';' + currentQt.Contact.Name + ';' + currentQt.Email;
+            idNameEmails.add(idNameEmail);
+        }
+        createPDFsAndSendEmail(idNameEmails);
+    }
+    
+    @future(callout=true)
+    public static void createPDFsAndSendEmail(List<String> idNameEmails) {
+        List<QuoteDocument> quoteDocumentsToSave = new List<QuoteDocument>();
+        for (String currentIdNameEmail : idNameEmails) {
+            
+            Integer indexForQuoteId = 0;
+            Integer indexForQuotesContactName = 1;
+            Integer indexForQuotesContactEmail = 2;
+            
+            List<String> currentIdNameEmailList = currentIdNameEmail.split(';');
+            PageReference invoicePDF = new PageReference('/apex/EmailPDF?id=' + currentIdNameEmailList[indexForQuoteId]);
+            
+            Blob quoteBlob = invoicePDF.getContent();
+            
+            Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
+            
+            attachment.setContentType('application/pdf');
+            attachment.setFileName('Invoice.pdf');
+            attachment.body = quoteBlob;
+            attachment.setInline(false);
+            
+            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+            
+            mail.setToAddresses(new String[] {currentIdNameEmailList[indexForQuotesContactEmail]});
+            mail.setSubject('School invoice pdf');
+            mail.setHtmlBody('Greetings ' + currentIdNameEmailList[indexForQuotesContactName] + ', here is your invoice for the upcoming school period.');
+            mail.setFileAttachments(new Messaging.EmailFileAttachment[] {attachment});
+         
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] {mail});
+    
+            QuoteDocument quoteDoc = new QuoteDocument();
+            quoteDoc.Document = quoteBlob;
+            quoteDoc.QuoteId = currentIdNameEmailList[indexForQuoteId];
+            quoteDocumentsToSave.add(quoteDoc);
+        }
+        Database.insert(quoteDocumentsToSave);
+    }
+}
