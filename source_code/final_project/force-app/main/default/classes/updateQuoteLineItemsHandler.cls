@@ -5,17 +5,15 @@ public class updateQuoteLineItemsHandler {
 		List<Quote> quotesToChangeItemsDiscounts = new List<Quote>();
    
         for (Integer i = 0; i < newQuotes.size(); i++) {
-            if (Trigger.isUpdate) {
-                Quote oldQuote = (Quote)Trigger.oldMap.get(newQuotes[i].Id);
-                if (newQuotes[i].LineItemCount != oldQuote.LineItemCount) {
-                    quotesToChangeItemsDiscounts.add(newQuotes[i]);
-                }
-                else if (newQuotes[i].Status == 'Approved' && oldQuote.Status != newQuotes[i].Status) {
-                    quotesToUpdatePartialPayment.add(newQuotes[i]);
-                }
-                else if (newQuotes[i].Partial_Payment__c != null && oldQuote.Partial_Payment__c == null) {
-                    quotesToCreatePDF.add(newQuotes[i]);
-                }
+            Quote oldQuote = (Quote)Trigger.oldMap.get(newQuotes[i].Id);
+            if (newQuotes[i].LineItemCount != oldQuote.LineItemCount) {
+                quotesToChangeItemsDiscounts.add(newQuotes[i]);
+            }
+            else if (newQuotes[i].Status == 'Approved' && oldQuote.Status != newQuotes[i].Status) {
+                quotesToUpdatePartialPayment.add(newQuotes[i]);
+            }
+            else if (newQuotes[i].Partial_Payment__c != null && oldQuote.Partial_Payment__c == null) {
+                quotesToCreatePDF.add(newQuotes[i]);
             }
         }
         
@@ -102,12 +100,10 @@ public class updateQuoteLineItemsHandler {
             update qtLineItemsToUpdate;  
         }
         List<Quote> qtToChangeDiscountPm = new List<Quote>();
-            if (Trigger.isUpdate) {
-            for (Quote qt : newQuotes) {
-                Quote oldQt = (Quote)Trigger.oldMap.get(qt.Id);
-                if (qt.Payment_Method__c != oldQt.Payment_Method__c) {
-                    qtToChangeDiscountPm.add(qt);
-                }
+        for (Quote qt : newQuotes) {
+            Quote oldQt = (Quote)Trigger.oldMap.get(qt.Id);
+            if (qt.Payment_Method__c != oldQt.Payment_Method__c) {
+                qtToChangeDiscountPm.add(qt);
             }
         }
 
@@ -131,13 +127,11 @@ public class updateQuoteLineItemsHandler {
         }
 		List<Quote> quotesToChangeItemsDiscountScholarNew = new List<Quote>();
         List<Quote> quotesToChangeItemsDiscountScholarOld = new List<Quote>();
-        if (Trigger.isUpdate) {
-            for (Integer i = 0; i < newQuotes.size(); i++) {
-                Quote oldQuote = (Quote)Trigger.oldMap.get(newQuotes[i].Id);
-                if (newQuotes[i].Scholarship_options__c != oldQuote.Scholarship_options__c) {
-                    quotesToChangeItemsDiscountScholarNew.add(newQuotes[i]);
-                    quotesToChangeItemsDiscountScholarOld.add(oldQuote);
-                }
+        for (Integer i = 0; i < newQuotes.size(); i++) {
+            Quote oldQuote = (Quote)Trigger.oldMap.get(newQuotes[i].Id);
+            if (newQuotes[i].Scholarship_options__c != oldQuote.Scholarship_options__c) {
+                quotesToChangeItemsDiscountScholarNew.add(newQuotes[i]);
+                quotesToChangeItemsDiscountScholarOld.add(oldQuote);
             }
         }
 
@@ -227,47 +221,45 @@ public class updateQuoteLineItemsHandler {
         List<Quote> currentQuotesToDeleteQLI = new List<Quote>();
         List<QuoteLineItem> quoteLineItemsToDelete = new List<QuoteLineItem>();
         List<Quote> quotesToUpdate = new List<Quote>();
-        if (Trigger.isUpdate) {
-            for (Quote currentNewQt : newQuotes) {
-                for (Quote currentUpdateQuote: updatedQuotes) {
-                    if (currentUpdateQuote.Id == currentNewQt.Id) {
-                        Quote oldQt = (Quote)Trigger.oldMap.get(currentNewQt.Id);
-                        if (currentUpdateQuote.Discount > 60 && currentNewQt.LineItemCount > oldQt.LineItemCount) {
-                            currentQuotesToDeleteQLI.add(currentNewQt);
+        for (Quote currentNewQt : newQuotes) {
+            for (Quote currentUpdateQuote: updatedQuotes) {
+                if (currentUpdateQuote.Id == currentNewQt.Id) {
+                    Quote oldQt = (Quote)Trigger.oldMap.get(currentNewQt.Id);
+                    if (currentUpdateQuote.Discount > 60 && currentNewQt.LineItemCount > oldQt.LineItemCount) {
+                        currentQuotesToDeleteQLI.add(currentNewQt);
+                    }
+                    else if (currentNewQt.Scholarship_options__c != null) {
+                        if (currentUpdateQuote.Discount > 60 && oldQt.Scholarship_options__c == null) {
+                            Quote currentNewQtClone = currentNewQt.clone(true);
+                            currentNewQtClone.Scholarship_options__c = oldQt.Scholarship_options__c;
+                            if (currentNewQt.Payment_Method__c != oldQt.Payment_Method__c && currentNewQt.Payment_Method__c == 'Payment in full') {
+                                currentNewQtClone.Payment_Method__c = 'Monthly';
+                            }
+                            quotesToUpdate.add(currentNewQtClone);
                         }
-                        else if (currentNewQt.Scholarship_options__c != null) {
-                            if (currentUpdateQuote.Discount > 60 && oldQt.Scholarship_options__c == null) {
+                        else if (oldQt.Scholarship_options__c != null && currentNewQt.Scholarship_options__c.length() > oldQt.Scholarship_options__c.length()) {
+                            if (currentUpdateQuote.Discount > 60) {
                                 Quote currentNewQtClone = currentNewQt.clone(true);
                                 currentNewQtClone.Scholarship_options__c = oldQt.Scholarship_options__c;
                                 if (currentNewQt.Payment_Method__c != oldQt.Payment_Method__c && currentNewQt.Payment_Method__c == 'Payment in full') {
                                     currentNewQtClone.Payment_Method__c = 'Monthly';
                                 }
                                 quotesToUpdate.add(currentNewQtClone);
-                            }
-                            else if (oldQt.Scholarship_options__c != null && currentNewQt.Scholarship_options__c.length() > oldQt.Scholarship_options__c.length()) {
-                                if (currentUpdateQuote.Discount > 60) {
-                                    Quote currentNewQtClone = currentNewQt.clone(true);
-                                    currentNewQtClone.Scholarship_options__c = oldQt.Scholarship_options__c;
-                                    if (currentNewQt.Payment_Method__c != oldQt.Payment_Method__c && currentNewQt.Payment_Method__c == 'Payment in full') {
-                                        currentNewQtClone.Payment_Method__c = 'Monthly';
-                                    }
-                                    quotesToUpdate.add(currentNewQtClone);
-                                } 
-                            }
-                            else if (currentNewQt.Scholarship_options__c == oldQt.Scholarship_options__c) {
-                                if (currentNewQt.Payment_Method__c != oldQt.Payment_Method__c && currentNewQt.Payment_Method__c == 'Payment in full' && currentUpdateQuote.Discount > 60) {
-                                    Quote currentNewQtClone = currentNewQt.clone(true);
-                                    currentNewQtclone.Payment_Method__c = 'Monthly';
-                                    quotesToUpdate.add(currentNewQtClone);
-                                }
-                            }
+                            } 
                         }
-                        else if (currentNewQt.Scholarship_options__c == null) {
-                            if (currentUpdateQuote.Discount > 60 && currentNewQt.Payment_Method__c == 'Payment in full' && currentNewQt.Payment_Method__c != oldQt.Payment_Method__c) {
+                        else if (currentNewQt.Scholarship_options__c == oldQt.Scholarship_options__c) {
+                            if (currentNewQt.Payment_Method__c != oldQt.Payment_Method__c && currentNewQt.Payment_Method__c == 'Payment in full' && currentUpdateQuote.Discount > 60) {
                                 Quote currentNewQtClone = currentNewQt.clone(true);
-                                currentNewQtClone.Payment_Method__c = 'Monthly';
+                                currentNewQtclone.Payment_Method__c = 'Monthly';
                                 quotesToUpdate.add(currentNewQtClone);
                             }
+                        }
+                    }
+                    else if (currentNewQt.Scholarship_options__c == null) {
+                        if (currentUpdateQuote.Discount > 60 && currentNewQt.Payment_Method__c == 'Payment in full' && currentNewQt.Payment_Method__c != oldQt.Payment_Method__c) {
+                            Quote currentNewQtClone = currentNewQt.clone(true);
+                            currentNewQtClone.Payment_Method__c = 'Monthly';
+                            quotesToUpdate.add(currentNewQtClone);
                         }
                     }
                 }
