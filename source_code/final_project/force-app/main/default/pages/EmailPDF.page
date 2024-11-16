@@ -1,4 +1,4 @@
-<apex:page standardController="Quote" renderAs="PDF" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" showHeader="false">
+<apex:page controller="EmailPDFController" renderAs="PDF" standardStylesheets="false" applyHtmlTag="false" applyBodyTag="false" showHeader="false">
 <html>
     <head>
         <style>
@@ -13,9 +13,10 @@
                 padding: 15px;
             }
             .tableDivs {
-            	padding-top: 70px;
+            	padding-top:35px;
+            	border-collapse: collapse;
                 margin: auto;
-                width: 50%;
+                width: 73%;
             }
             .noDisplay {
             	display: none;
@@ -23,29 +24,31 @@
         </style>
     </head>
     <body>
-        <h1 style=" text-align: center; padding-bottom:20px;">Invoice of the upcoming school period</h1>
+        <h1 style=" text-align: center; padding-bottom:20px;">Tuition invoice</h1>
         <div>
-        <apex:pageBlock >
-            <apex:pageBlockTable cellpadding="30" align="center" value="{!Quote.QuoteLineItems}" var="currentQtLI">
-                <apex:column headerValue="Subject" value="{!currentQtLI.Product2.Name}"/>
-                <apex:column headerValue="Cost" value="{!currentQtLI.UnitPrice}"/>
-                <apex:column value="{!currentQtLI.Subtotal}"/>
-            </apex:pageBlockTable>
-            <p style="text-align: right; padding-right:165px"><b>Subtotal:&nbsp;&nbsp;&nbsp;</b><apex:outputField value="{!Quote.Subtotal}" id="subtotal"/></p>
-        </apex:pageBlock>
-            
-        <div style="padding-top: 30px;">
-        <apex:pageBlock >
-
-            <p><b>Scholarships:&nbsp;&nbsp;</b><apex:outputField value="{!Quote.Scholarship_options__c}"/></p>
-
-            <p><b>Total discount:&nbsp;&nbsp;</b> <apex:outputField value="{!Quote.Discount}"/></p> 
+            <apex:pageBlock >
+                <apex:pageBlockTable cellpadding="30" align="center" value="{!qtLineItemsToDisplay}" var="currentQtLI">
+                    <apex:column headerValue="Subject" value="{!currentQtLI.Product2.Name}"/>
+                    <apex:column headerValue="Cost" value="{!currentQtLI.UnitPrice}"/>
+                    <apex:column headerValue="Discount" value="{!currentQtLI.Discount}"/>
+                    <apex:column value="{!currentQtLI.Subtotal}"/>
+                </apex:pageBlockTable>
                 
-        </apex:pageBlock>
+                <div style="text-align: right; padding-right: 100px; padding-top:35px;">
+                    <p><b>Subtotal:&nbsp;&nbsp;</b><apex:outputField value="{!qtToGeneratePDF.Subtotal}" id="subtotal"/></p>
+                    <apex:repeat var="scholarship" value="{!scholarshipOptions}">
+                        <p><b>{!scholarship} scholarship discount: </b>{!IF(scholarship == 'Sports' || scholarship == 'Excellence', '10%', (IF(scholarship == 'Related teachers' || scholarship == 'Economic need', '30%', '')))}</p>
+                    </apex:repeat>
+                    <p style="{!IF(qtToGeneratePDF.Payment_Method__c == 'Payment in full', '', 'display:none;')}"><b>Discount for payment in full:&nbsp;&nbsp;&nbsp;</b>5%</p>
+                    <p style="{!IF(qtToGeneratePDF.LineItemCount == 2, '', 'display:none;')}"><b>Discount applied to 1 subject for enrolling in {!qtToGeneratePDF.LineItemCount} subjects: </b>10%</p> 
+                    <p style="{!IF(qtToGeneratePDF.LineItemCount >= 3, '', 'display:none;')}"><b>Discount applied to all subjects except to 1 for enrolling in {!qtToGeneratePDF.LineItemCount} subjects: </b>15%</p>
+                    <p><b>Total discount:&nbsp;&nbsp;</b> <apex:outputField value="{!qtToGeneratePDF.Discount}"/></p> 
+                    <p><b>Total:&nbsp;&nbsp;</b><apex:outputField value="{!qtToGeneratePDF.TotalPrice}"/></p>
+                </div>
+                
+            </apex:pageBlock>
         </div>
-            
-        </div>
-        <div class="{!IF(Quote.Payment_Method__c == 'Monthly', 'tableDivs', 'noDisplay')}">
+        <div class="{!IF(qtToGeneratePDF.Payment_Method__c == 'Monthly', 'tableDivs', 'noDisplay')}">
             <table>
                 <tr>
                     <th>No.</th>
@@ -55,37 +58,37 @@
                 <tr>
                     <td>1</td>
                     <td>July 10</td>
-                    <td><apex:outputField value="{!Quote.Partial_Payment__c}"></apex:outputField></td>
+                    <td><apex:outputField value="{!qtToGeneratePDF.Partial_Payment__c}"></apex:outputField></td>
                 </tr>
                 <tr>
                     <td>2</td>
                     <td>August 10</td>
-                    <td><apex:outputField value="{!Quote.Partial_Payment__c}"></apex:outputField></td>
+                    <td><apex:outputField value="{!qtToGeneratePDF.Partial_Payment__c}"></apex:outputField></td>
                 </tr>
                 <tr>
                     <td>3</td>
                     <td>September 10</td>
-                    <td><apex:outputField value="{!Quote.Partial_Payment__c}"></apex:outputField></td>
+                    <td><apex:outputField value="{!qtToGeneratePDF.Partial_Payment__c}"></apex:outputField></td>
                 </tr>
                 <tr>
                     <td>4</td>
                     <td>October 10</td>
-                    <td><apex:outputField value="{!Quote.Partial_Payment__c}"></apex:outputField></td>
+                    <td><apex:outputField value="{!qtToGeneratePDF.Partial_Payment__c}"></apex:outputField></td>
                 </tr>
-                <tr style="{!IF(Quote.Contact.Period__c == 'Semester', '', 'display:none;')}">
+                <tr style="{!IF(qtToGeneratePDF.Contact.Period__c == 'Semester', '', 'display:none;')}">
                     <td>5</td>
                     <td>November 10</td>
-                    <td><apex:outputField value="{!Quote.Partial_Payment__c}"></apex:outputField></td>
+                    <td><apex:outputField value="{!qtToGeneratePDF.Partial_Payment__c}"></apex:outputField></td>
                 </tr>
-                <tr style="{!IF(Quote.Contact.Period__c == 'Semester', '', 'display:none;')}">
+                <tr style="{!IF(qtToGeneratePDF.Contact.Period__c == 'Semester', '', 'display:none;')}">
                     <td>6</td>
                     <td>December 10</td>
-                    <td><apex:outputField value="{!Quote.Partial_Payment__c}"></apex:outputField></td>
+                    <td><apex:outputField value="{!qtToGeneratePDF.Partial_Payment__c}"></apex:outputField></td>
                 </tr>
             </table>
         </div>
-        <div class="{!IF(Quote.Payment_Method__c == 'Payment in full', 'tableDivs', 'noDisplay')}">
-            <table>
+        <div class="{!IF(qtToGeneratePDF.Payment_Method__c == 'Payment in full', 'tableDivs', 'noDisplay')}">
+            <table style="width:100%; height:50%;">
                 <tr>
                     <th>No.</th>
                     <th>Date</th>
@@ -94,17 +97,9 @@
                 <tr>
                     <td>1</td>
                     <td>July 10</td>
-                    <td><apex:outputField value="{!Quote.Partial_Payment__c}"></apex:outputField></td>
+                    <td><apex:outputField value="{!qtToGeneratePDF.Partial_Payment__c}"></apex:outputField></td>
                 </tr>
             </table>
-        </div>
-        
-        <div style="{! IF(Quote.Payment_Method__c == 'Payment in full', '', 'display:none;')}">
-			<p style="text-align: right; padding-right:250px;"><b>Total:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b><apex:outputField value="{!Quote.TotalPrice}"/></p>
-        </div>
-        
-        <div style="{! IF(Quote.Payment_Method__c == 'Monthly', '', 'display:none;')}">
-        	<p style="text-align: right; padding-right:235px;"><b>Total:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b><apex:outputField value="{!Quote.TotalPrice}"/></p>
         </div>
 	</body>
 </html>
