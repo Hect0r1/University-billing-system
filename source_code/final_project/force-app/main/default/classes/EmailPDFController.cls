@@ -40,8 +40,13 @@ public class EmailPDFController {
             
             List<String> currentIdNameEmailList = currentIdNameEmail.split(';');
             PageReference invoicePDF = new PageReference('/apex/EmailPDF?quoteId=' + currentIdNameEmailList[indexForQuoteId]);
-            
-            Blob quoteBlob = invoicePDF.getContent();
+            Blob quoteBlob;
+            if (!test.isRunningTest()){
+            	quoteBlob = invoicePDF.getContent();
+            }
+            else {
+            	quoteBlob = blob.valueof('TEST');
+            }
             
             Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
             
