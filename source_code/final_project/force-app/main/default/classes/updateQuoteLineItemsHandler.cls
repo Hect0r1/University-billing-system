@@ -20,7 +20,7 @@ public class updateQuoteLineItemsHandler {
             List<Quote> quotesToUpdatePartPay = [SELECT Contact.Period__c, Payment_Method__C, GrandTotal FROM Quote WHERE Id IN : quotesToUpdatePartialPayment];
             for (Quote currentQt: quotesToUpdatePartPay) {
                 if (currentQt.Payment_Method__c == 'Payment in full') {
-                    currentQt.Partial_Payment__c = 0;
+                    currentQt.Partial_Payment__c = currentQt.GrandTotal;
                 }
                 else {
                     if (currentQt.Contact.Period__c == 'Quarterly') {
