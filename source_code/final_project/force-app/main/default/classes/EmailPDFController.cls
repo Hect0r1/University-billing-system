@@ -9,10 +9,9 @@ public class EmailPDFController {
     public EmailPDFController() {
         
         String quoteId = ApexPages.currentPage().getParameters().get('QuoteId');
-        this.qtsToGeneratePDF = [SELECT Subtotal, Discount, TotalPrice FROM Quote WHERE Id =: quoteId];
+        this.qtsToGeneratePDF = [SELECT Subtotal, Discount, GrandTotal, Scholarship_options__c, Partial_Payment__c, Payment_Method__c, Contact.Period__c FROM Quote WHERE Id =: quoteId];
         this.qtLineItemsToDisplay = [SELECT QuoteId, Product2.Name, UnitPrice, Subtotal FROM QuoteLineItem WHERE QuoteId =: quoteId];
-        
-       	 
+
     }
     
     public static void generatePDFAndSendEmail(List<Quote> quotes) {
