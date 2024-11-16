@@ -1,17 +1,21 @@
 public class EmailPDFController {
     
-    public Quote qtsToGeneratePDF {get; set;}
+    public Quote qtToGeneratePDF {get; set;}
     
     public List<QuoteLineItem> qtLineItemsToDisplay {get; set;}
     
-    public QuoteLineItem qtLineItemWithTotals {get; set;} 
+    public List<String> scholarshipOptions {get; set;}
     
     public EmailPDFController() {
         
-        String quoteId = ApexPages.currentPage().getParameters().get('QuoteId');
-        this.qtsToGeneratePDF = [SELECT Subtotal, Discount, GrandTotal, Scholarship_options__c, Partial_Payment__c, Payment_Method__c, Contact.Period__c FROM Quote WHERE Id =: quoteId];
-        this.qtLineItemsToDisplay = [SELECT QuoteId, Product2.Name, UnitPrice, Subtotal FROM QuoteLineItem WHERE QuoteId =: quoteId];
-
+        String quoteId = ApexPages.currentPage().getParameters().get('quoteId');
+        this.qtToGeneratePDF = [SELECT LineItemCount, Subtotal, Discount, TotalPrice, Scholarship_options__c, Partial_Payment__c, Payment_Method__c, Contact.Period__c FROM Quote WHERE Id =: quoteId];
+        this.qtLineItemsToDisplay = [SELECT QuoteId, Product2.Name, UnitPrice, Subtotal, Discount FROM QuoteLineItem WHERE QuoteId =: quoteId];
+		List<String> scholarships = new List<String>();
+        if (qtToGeneratePDF.Scholarship_options__c != null) {
+            this.scholarshipOptions = qtToGeneratePDF.Scholarship_options__c.split(';');
+        }
+        
     }
     
     public static void generatePDFAndSendEmail(List<Quote> quotes) {
@@ -35,7 +39,7 @@ public class EmailPDFController {
             Integer indexForQuotesContactEmail = 2;
             
             List<String> currentIdNameEmailList = currentIdNameEmail.split(';');
-            PageReference invoicePDF = new PageReference('/apex/EmailPDF?id=' + currentIdNameEmailList[indexForQuoteId]);
+            PageReference invoicePDF = new PageReference('/apex/EmailPDF?quoteId=' + currentIdNameEmailList[indexForQuoteId]);
             
             Blob quoteBlob = invoicePDF.getContent();
             
@@ -50,7 +54,7 @@ public class EmailPDFController {
             
             mail.setToAddresses(new String[] {currentIdNameEmailList[indexForQuotesContactEmail]});
             mail.setSubject('School invoice pdf');
-            mail.setHtmlBody('Greetings ' + currentIdNameEmailList[indexForQuotesContactName] + ', here is your invoice for the upcoming school period.');
+            mail.setHtmlBody('Greetings ' + currentIdNameEmailList[indexForQuotesContactName] + ', here is your tuition invoice of the next school term.');
             mail.setFileAttachments(new Messaging.EmailFileAttachment[] {attachment});
          
             Messaging.sendEmail(new Messaging.SingleEmailMessage[] {mail});
