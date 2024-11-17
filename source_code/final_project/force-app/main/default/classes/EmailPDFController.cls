@@ -20,10 +20,10 @@ public class EmailPDFController {
     
     public static void generatePDFAndSendEmail(List<Quote> quotes) {
         
-        List<Quote> quotesWithContactsNames = [SELECT Contact.Name, Email, Id FROM Quote WHERE Id IN : quotes];
+        List<Quote> quotesWithContactsNames = [SELECT Contact.Name, Contact.Email, Id FROM Quote WHERE Id IN : quotes];
         List<String> idNameEmails = new List<String>();
         for (Quote currentQt : quotesWithContactsNames) {
-            String idNameEmail = currentQt.Id + ';' + currentQt.Contact.Name + ';' + currentQt.Email;
+            String idNameEmail = currentQt.Id + ';' + currentQt.Contact.Name + ';' + currentQt.Contact.Email;
             idNameEmails.add(idNameEmail);
         }
         createPDFsAndSendEmail(idNameEmails);
@@ -45,7 +45,7 @@ public class EmailPDFController {
             	quoteBlob = invoicePDF.getContent();
             }
             else {
-            	quoteBlob = blob.valueof('TEST');
+            	quoteBlob = blob.valueof('Test');
             }
             
             Messaging.EmailFileAttachment attachment = new Messaging.EmailFileAttachment();
