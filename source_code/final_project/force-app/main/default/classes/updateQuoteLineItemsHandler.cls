@@ -217,14 +217,20 @@ public class updateQuoteLineItemsHandler {
             }
             update quoteLineItemsToUpdate;
         }
-		List<Quote> updatedQuotes = [SELECT Id, Discount FROM Quote WHERE Id IN : newQuotes];
+		List<Quote> updatedQuotes = [SELECT Id, Discount, Contact.Period__c, LineItemCount FROM Quote WHERE Id IN : newQuotes];
         List<Quote> currentQuotesToDeleteQLI = new List<Quote>();
         List<QuoteLineItem> quoteLineItemsToDelete = new List<QuoteLineItem>();
         List<Quote> quotesToUpdate = new List<Quote>();
         for (Quote currentNewQt : newQuotes) {
             for (Quote currentUpdateQuote: updatedQuotes) {
+                Quote oldQt = (Quote)Trigger.oldMap.get(currentNewQt.Id);
+                if (currentUpdateQuote.LineItemCount > 7 && currentUpdateQuote.Contact.Period__c == 'Semester') {
+                    currentQuotesToDeleteQLI.add(currentUpdateQuote);
+                }
+                else if (currentUpdateQuote.LineItemCount > 4 && currentUpdateQuote.Contact.Period__c == 'Quarterly') {
+                    currentQuotesToDeleteQLI.add(currentUpdateQuote);
+                }
                 if (currentUpdateQuote.Id == currentNewQt.Id) {
-                    Quote oldQt = (Quote)Trigger.oldMap.get(currentNewQt.Id);
                     if (currentUpdateQuote.Discount > 60 && currentNewQt.LineItemCount > oldQt.LineItemCount) {
                         currentQuotesToDeleteQLI.add(currentNewQt);
                     }
