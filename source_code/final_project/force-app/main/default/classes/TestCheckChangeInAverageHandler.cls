@@ -5,7 +5,7 @@ public class TestCheckChangeInAverageHandler {
         
         Opportunity opp = new Opportunity(CloseDate = Date.Today().addDays(1), Name = 'test', ForecastCategoryName = 'Pipeline', Probability = 0.5, StageName='Prospecting');
         insert opp;
-        Contact cont = new Contact(FirstName='Test first name', LastName='Test last name', Period__c='Semester', Average__c=10, Email='email@fakemail.com');
+        Contact cont = new Contact(FirstName='Test first name', LastName='Test last name', Period__c='Semester', Average__c=10, Email='email@fakemail.com', State__c='Guanajuato');
         insert cont;
         Product2 product = new Product2(Name='Test name', IsActive=true);
         insert product;
