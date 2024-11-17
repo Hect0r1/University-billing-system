@@ -255,13 +255,6 @@ public class updateQuoteLineItemsHandler {
                             }
                         }
                     }
-                    else if (currentNewQt.Scholarship_options__c == null) {
-                        if (currentUpdateQuote.Discount > 60 && currentNewQt.Payment_Method__c == 'Payment in full' && currentNewQt.Payment_Method__c != oldQt.Payment_Method__c) {
-                            Quote currentNewQtClone = currentNewQt.clone(true);
-                            currentNewQtClone.Payment_Method__c = 'Monthly';
-                            quotesToUpdate.add(currentNewQtClone);
-                        }
-                    }
                 }
             }
         }
