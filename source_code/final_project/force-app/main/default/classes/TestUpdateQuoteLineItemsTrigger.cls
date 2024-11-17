@@ -413,6 +413,44 @@ public class TestUpdateQuoteLineItemsTrigger {
     }
     
     @isTest
+    static void CheckQuoteLIDeletionWhenSurpassQTLICountSemester() {
+        Quote qt = createTestData('Monthly', 'Semester', 7, '');
+        Test.startTest();
+        Product2 product = new Product2(Name='Test name', IsActive=true);
+        insert product;
+        Id pricebookId = Test.getStandardPricebookId();
+		PricebookEntry standardPBE = new PricebookEntry(Pricebook2Id = pricebookId, Product2Id = product.Id, UnitPrice = 1000, IsActive = true);
+    	insert standardPBE;
+        PricebookEntry priceBE = new PricebookEntry(IsActive=true, UnitPrice=10.0, Pricebook2Id=qt.Pricebook2Id, Product2Id=product.Id);
+        insert priceBE;
+        QuoteLineItem qtLineItem = new QuoteLineItem(UnitPrice = 10.0, Quantity = 1, QuoteId = qt.Id, PricebookEntryId=priceBE.Id, Product2Id=product.Id);
+        insert qtLineItem;
+        Test.stopTest();
+        
+        Quote qtUpdated = [SELECT LineItemCount FROM Quote WHERE Id =: qt.Id];
+        Assert.areEqual(7, qtUpdated.LineItemCount);
+    }
+    
+    @isTest
+    static void CheckQuoteLIDeletionWhenSurpassQTLICountQuarterly() {
+        Quote qt = createTestData('Monthly', 'Quarterly', 4, '');
+        Test.startTest();
+        Product2 product = new Product2(Name='Test name', IsActive=true);
+        insert product;
+        Id pricebookId = Test.getStandardPricebookId();
+		PricebookEntry standardPBE = new PricebookEntry(Pricebook2Id = pricebookId, Product2Id = product.Id, UnitPrice = 1000, IsActive = true);
+    	insert standardPBE;
+        PricebookEntry priceBE = new PricebookEntry(IsActive=true, UnitPrice=10.0, Pricebook2Id=qt.Pricebook2Id, Product2Id=product.Id);
+        insert priceBE;
+        QuoteLineItem qtLineItem = new QuoteLineItem(UnitPrice = 10.0, Quantity = 1, QuoteId = qt.Id, PricebookEntryId=priceBE.Id, Product2Id=product.Id);
+        insert qtLineItem;
+        Test.stopTest();
+        
+        Quote qtUpdated = [SELECT LineItemCount FROM Quote WHERE Id =: qt.Id];
+        Assert.areEqual(4, qtUpdated.LineItemCount);
+    }
+    
+    @isTest
     static void RunEmailPDFControllerSuccessful() {
         Test.startTest();
         Quote qt = createTestData('Monthly', 'Quarterly', 1, 'Excellence');
@@ -467,7 +505,7 @@ public class TestUpdateQuoteLineItemsTrigger {
     public static Quote createTestData(String paymentMethod, String period, Integer amountOfQtliToCreate, String scholarShipName) {
         Opportunity opp = new Opportunity(CloseDate = Date.Today().addDays(1), Name = 'test', ForecastCategoryName = 'Pipeline', Probability = 0.5, StageName='Prospecting');
         insert opp;
-        Contact cont = new Contact(FirstName='Test first name', LastName='Test last name', Period__c=period, Average__c=10, Email='email@fakemail.com');
+        Contact cont = new Contact(FirstName='Test first name', LastName='Test last name', Period__c=period, Average__c=10, Email='email@fakemail.com', State__c='Guanajuato');
         insert cont;
         Product2 product = new Product2(Name='Test name', IsActive=true);
         insert product;
